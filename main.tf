@@ -18,7 +18,7 @@ module "network" {
   # ----------------------- #
   security_group_name        = "paula-SG"
   security_group_description = "Allow HTTP traffic from anywhere"
-  inport                     = ["80", "22", "443"]
+  inport                     = ["80", "22", "3306", "9000", "3001"]
   in_protocol                = "tcp"
   eg_port                    = 0
   eg_protocol                = "-1"
@@ -30,9 +30,10 @@ module "backendEC2" {
   ec2_ami                     = "ami-0cd59ecaf368e5ccf"
   ec2_type                    = "t2.micro"
   SG_id                       = [module.network.secgroup-id]
-  ec2_subnet_ID               = module.network.public_subnet_id1
+  ec2_subnet_ID               = module.network.public_subnet_id
   associate_public_ip_address = true
   key_pair                    = "paula"
+  user_data                   = file("./install.sh")
 }
 # ----------------------- ------------------------------------#
 module "frontendEC2" {
@@ -41,19 +42,22 @@ module "frontendEC2" {
   ec2_ami                     = "ami-0cd59ecaf368e5ccf"
   ec2_type                    = "t2.micro"
   SG_id                       = [module.network.secgroup-id]
-  ec2_subnet_ID               = module.network.public_subnet_id1
+  ec2_subnet_ID               = module.network.public_subnet_id
   associate_public_ip_address = true
   key_pair                    = "paula"
+  user_data                   = file("./install.sh")
 }
 # ----------------------- ------------------------------------#
 module "database" {
-  source               = "./modules/RDS"
-  allocated_storage    = 10
-  engine               = "mysql"
-  engine_version       = "8.0.28"
-  instance_class       = "db.t2.micro"
-  db_name              = "mysqldb"
-  username             = "admin"
-  password             = "admin123"
-  publicly_accessible  = false
+  source              = "./modules/RDS"
+  allocated_storage   = 10
+  engine              = "mysql"
+  engine_version      = "8.0.28"
+  instance_class      = "db.t3.micro"
+  db_name             = "mysqldb"
+  username            = "admin"
+  password            = "admin123"
+  publicly_accessible = false
+  db_subnet_group_name = module.network.db_subnet_group_name
+  rds_sg = [module.network.secgroup-id]
 }

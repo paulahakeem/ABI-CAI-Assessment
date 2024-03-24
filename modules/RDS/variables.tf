@@ -18,9 +18,9 @@ variable "password" {
   type        = string
 }
 
-#variable "db_subnet_group_name" {
-#  type        = string
-#}
+variable "db_subnet_group_name" {
+  type        = string
+}
 
 variable "publicly_accessible" {
 }
@@ -32,3 +32,4 @@ variable "engine" {
 variable "engine_version" {
   type        = string
 }
+ variable "rds_sg" {}

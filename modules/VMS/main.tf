@@ -5,6 +5,7 @@ resource "aws_instance" "public-ec2" {
   subnet_id                   = var.ec2_subnet_ID
   associate_public_ip_address = var.associate_public_ip_address
   key_name                    = var.key_pair
+  user_data                   = var.user_data
   tags = {
     Name = var.ec2_name
   }

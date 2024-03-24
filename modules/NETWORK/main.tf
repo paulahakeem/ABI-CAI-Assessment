@@ -14,12 +14,15 @@ resource "aws_subnet" "subnet" {
 
   vpc_id            = aws_vpc.mainvpc.id
   cidr_block        = each.value["cidr_block"]
-  availability_zone = "us-east-1a"  # Specify the availability zone here
+  availability_zone = each.value["availability_zone"]  # Use the availability zone specified in the variable
 
   tags = {
     Name = each.key
   }
+
+  map_public_ip_on_launch = each.value["public"] ? true : false
 }
+
 
 /*_________Routetables_________*/
 resource "aws_route_table" "public-route" {
@@ -34,7 +37,7 @@ resource "aws_route" "igw-route" {
   gateway_id = aws_internet_gateway.igw.id
 }
 resource "aws_route_table_association" "first" {
-  subnet_id      = aws_subnet.subnet["public_subnet1"].id  
+  subnet_id      = aws_subnet.subnet["public_subnet"].id  
   route_table_id = aws_route_table.public-route.id
 }
 
@@ -52,7 +55,7 @@ resource "aws_route" "natgw-route" {
   gateway_id = aws_nat_gateway.nat-gw.id
 }
 resource "aws_route_table_association" "c" {
-  subnet_id      = aws_subnet.subnet["private_subnet1"].id
+  subnet_id      = aws_subnet.subnet["private_subnet_1"].id
   route_table_id = aws_route_table.private-route.id
 }
 
@@ -69,7 +72,7 @@ resource "aws_eip" "eip" {
 }
 resource "aws_nat_gateway" "nat-gw" {
   allocation_id = aws_eip.eip.id
-  subnet_id     = aws_subnet.subnet["public_subnet1"].id 
+  subnet_id     = aws_subnet.subnet["public_subnet"].id 
 
   tags = {
     Name = var.natgateway_name
@@ -127,11 +130,7 @@ resource "aws_security_group_rule" "egress" {
 
 
 
-#resource "aws_db_subnet_group" "default" {
- #name       = "subnet_group_for_db"
-  #subnet_ids = [aws_subnet.subnet["public_subnet1"].id]
-
-  #tags = {
-   # Name = "My DB subnet group"
-  #}
-#}
+resource "aws_db_subnet_group" "db" {
+  name       = "db-subnet-group"
+  subnet_ids = [aws_subnet.subnet["private_subnet_1"].id, aws_subnet.subnet["private_subnet_2"].id]
+}
